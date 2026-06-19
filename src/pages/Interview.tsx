@@ -42,7 +42,7 @@ export default function Interview() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const timerRef = useRef<number | null>(null)
 
   // Scroll to bottom when messages change
   useEffect(() => {
