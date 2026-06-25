@@ -1,34 +1,25 @@
 import type { Domain, Difficulty, InterviewType, JobRole, Question, Answer } from '@/types'
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-interface OpenAIResponse {
-  choices: Array<{
-    message: {
-      content: string
-    }
-  }>
-}
+const genAI = new GoogleGenerativeAI(
+  import.meta.env.VITE_GEMINI_API_KEY
+);
 
-async function callOpenAI(prompt: string): Promise<string> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
-  })
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+});
 
-  if (!response.ok) {
-    throw new Error('Failed to generate content')
+async function callGemini(prompt: string): Promise<string> {
+  try {
+    const result = await model.generateContent(prompt);
+
+    const response = await result.response;
+
+    return response.text();
+  } catch (error) {
+    console.error("Gemini Error:", error);
+    throw new Error("Failed to generate Gemini content");
   }
-
-  const data: OpenAIResponse = await response.json()
-  return data.choices[0]?.message?.content || ''
 }
 
 function getRoleDescription(role: JobRole): string {
@@ -78,7 +69,7 @@ Return the question as plain text, no markdown, no quotes.
 
 Also indicate if this is a technical or behavioral question by appending either [TECHNICAL] or [BEHAVIORAL] at the end.`
 
-  const response = await callOpenAI(prompt)
+  const response = await callGemini(prompt)
   const isTechnical = response.includes('[TECHNICAL]')
   const questionText = response.replace(/\[TECHNICAL\]|\[BEHAVIORAL\]/g, '').trim()
 
@@ -135,7 +126,7 @@ Return as valid JSON:
   "improvement_suggestions": ["<suggestion1>", "<suggestion2>"]
 }`
 
-  const response = await callOpenAI(prompt)
+  const response = await callGemini(prompt)
 
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/)
@@ -223,7 +214,7 @@ Return as valid JSON:
   ]
 }`
 
-  const response = await callOpenAI(prompt)
+  const response = await callGemini(prompt)
 
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/)
