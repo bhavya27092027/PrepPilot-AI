@@ -180,7 +180,7 @@ export default function Interview() {
       console.error('Error generating question:', error)
       toast({
         title: 'Error',
-        description: 'Failed to generate question. Please check your OpenAI API key.',
+        description: 'Failed to generate interview question. Please try again.',
         variant: 'destructive',
       })
     } finally {
