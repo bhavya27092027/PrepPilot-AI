@@ -146,10 +146,10 @@ export default function Interview() {
 
     try {
       const result = await generateQuestion(
-        interviewData.job_role as any,
-        interviewData.domain as any,
-        interviewData.difficulty as any,
-        interviewData.interview_type as any
+        interviewData.job_role,
+        interviewData.company,
+        interviewData.domain,
+        interviewData.difficulty
       )
 
       // Save question to DB
@@ -196,18 +196,11 @@ export default function Interview() {
     setMessages(prev => [...prev, { id: 'typing', role: 'ai', content: '', isTyping: true }])
 
     try {
-      // Build history for follow-up
-      const history = questions.slice(0, currentQuestionIndex + 1).map((q, idx) => ({
-        question: q.question_text,
-        answer: answers[idx]?.answer_text || '',
-      }))
-
       const result = await generateQuestion(
         interview.job_role as any,
+        interview.company as any,
         interview.domain as any,
-        interview.difficulty as any,
-        interview.interview_type as any,
-        history
+        interview.difficulty as any
       )
 
       // Save question
@@ -423,16 +416,14 @@ export default function Interview() {
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`flex gap-3 max-w-[85%] ${
-                      message.role === 'user' ? 'flex-row-reverse' : ''
-                    }`}
+                    className={`flex gap-3 max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse' : ''
+                      }`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                        message.role === 'ai'
-                          ? 'bg-gradient-to-br from-primary to-secondary'
-                          : 'bg-muted'
-                      }`}
+                      className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center ${message.role === 'ai'
+                        ? 'bg-gradient-to-br from-primary to-secondary'
+                        : 'bg-muted'
+                        }`}
                     >
                       {message.role === 'ai' ? (
                         <Brain className="w-5 h-5 text-white" />
@@ -442,11 +433,10 @@ export default function Interview() {
                     </div>
 
                     <div
-                      className={`rounded-2xl p-4 ${
-                        message.role === 'ai'
-                          ? 'bg-muted/50 border'
-                          : 'bg-primary text-primary-foreground'
-                      } ${message.isQuestion ? 'border-primary/20 bg-primary/5' : ''}`}
+                      className={`rounded-2xl p-4 ${message.role === 'ai'
+                        ? 'bg-muted/50 border'
+                        : 'bg-primary text-primary-foreground'
+                        } ${message.isQuestion ? 'border-primary/20 bg-primary/5' : ''}`}
                     >
                       {message.isTyping ? (
                         <div className="flex items-center gap-1 py-2">

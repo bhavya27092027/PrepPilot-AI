@@ -6,14 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { JOB_ROLES, DOMAINS, DIFFICULTIES, INTERVIEW_TYPES, QUESTION_COUNTS, DOMAINS_BY_ROLE } from '@/lib/constants'
-import type { JobRole, Domain, Difficulty, InterviewType } from '@/types'
+import {
+  JOB_ROLES,
+  COMPANIES,
+  DOMAINS,
+  DIFFICULTIES,
+  INTERVIEW_TYPES,
+  QUESTION_COUNTS,
+  DOMAINS_BY_ROLE,
+} from '@/lib/constants'
+import type { JobRole, Domain, Difficulty, InterviewType, InterviewConfig } from '@/types'
 
 const steps = [
   { id: 'role', title: 'Select Role', description: 'Choose your target position' },
+  { id: 'company', title: 'Select Company', description: 'Choose target company' },
   { id: 'domain', title: 'Choose Domain', description: 'Pick your interview topic' },
   { id: 'difficulty', title: 'Set Difficulty', description: 'Select challenge level' },
-  { id: 'type', title: 'Interview Type', description: 'Technical or behavioral' },
+  { id: 'type', title: 'Interview Type', description: 'Technical or Behavioral' },
   { id: 'questions', title: 'Question Count', description: 'How many questions' },
 ]
 
@@ -23,32 +32,50 @@ export default function InterviewSetup() {
   const [currentStep, setCurrentStep] = useState(0)
   const [loading, setLoading] = useState(false)
 
-  const [config, setConfig] = useState({
-    job_role: '' as JobRole | '',
-    domain: '' as Domain | '',
-    difficulty: 'intermediate' as Difficulty,
-    interview_type: 'technical' as InterviewType,
+  const [config, setConfig] = useState<InterviewConfig>({
+    job_role: "",
+    company: "",
+    domain: "",
+    difficulty: "beginner",
+    interview_type: "technical",
     num_questions: 5,
-  })
+  });
 
-  const filteredDomains = config.job_role
-    ? DOMAINS.filter(d => DOMAINS_BY_ROLE[config.job_role]?.includes(d.value))
-    : DOMAINS
+  const filteredDomains =
+    config.job_role === ""
+      ? []
+      : DOMAINS.filter((domain) =>
+        DOMAINS_BY_ROLE[config.job_role].includes(domain.value)
+      );
 
   useEffect(() => {
     if (config.job_role && filteredDomains.length > 0 && !filteredDomains.find(d => d.value === config.domain)) {
       setConfig(prev => ({ ...prev, domain: filteredDomains[0].value as Domain }))
     }
-  }, [config.job_role])
+  }, [config.job_role, filteredDomains])
 
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return !!config.job_role
-      case 1: return !!config.domain
-      case 2: return true
-      case 3: return true
-      case 4: return true
-      default: return false
+      case 0:
+        return !!config.job_role;
+
+      case 1:
+        return !!config.company;
+
+      case 2:
+        return !!config.domain;
+
+      case 3:
+        return !!config.difficulty;
+
+      case 4:
+        return !!config.interview_type;
+
+      case 5:
+        return !!config.num_questions;
+
+      default:
+        return false;
     }
   }
 
@@ -77,6 +104,7 @@ export default function InterviewSetup() {
         .insert({
           user_id: user!.id,
           job_role: config.job_role,
+          company: config.company,
           domain: config.domain,
           difficulty: config.difficulty,
           interview_type: config.interview_type,
@@ -133,13 +161,12 @@ export default function InterviewSetup() {
                 className={`flex items-center ${index < steps.length - 1 ? 'flex-1' : ''}`}
               >
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition-colors ${
-                    index < currentStep
-                      ? 'bg-primary text-primary-foreground'
-                      : index === currentStep
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition-colors ${index < currentStep
+                    ? 'bg-primary text-primary-foreground'
+                    : index === currentStep
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   {index < currentStep ? <Check className="w-5 h-5" /> : index + 1}
                 </div>
@@ -171,144 +198,224 @@ export default function InterviewSetup() {
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
           >
-              {currentStep === 0 && (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {JOB_ROLES.map((role) => (
-                    <motion.div
-                      key={role.value}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Card
-                        glass
-                        className={`cursor-pointer transition-all ${
-                          config.job_role === role.value
-                            ? 'ring-2 ring-primary bg-primary/5'
-                            : 'hover:bg-muted/50'
+            {currentStep === 0 && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {JOB_ROLES.map((role) => (
+                  <motion.div
+                    key={role.value}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Card
+                      glass
+                      className={`cursor-pointer transition-all ${config.job_role === role.value
+                        ? 'ring-2 ring-primary bg-primary/5'
+                        : 'hover:bg-muted/50'
                         }`}
-                        onClick={() => setConfig(prev => ({ ...prev, job_role: role.value as JobRole }))}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                                <Brain className="w-6 h-6 text-white" />
-                              </div>
-                              <div>
-                                <p className="font-semibold text-lg">{role.label}</p>
-                              </div>
+                      onClick={() => setConfig(prev => ({ ...prev, job_role: role.value as JobRole }))}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                              <Brain className="w-6 h-6 text-white" />
                             </div>
-                            {config.job_role === role.value && (
-                              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                                <Check className="w-5 h-5 text-white" />
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-
-              {currentStep === 1 && (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {filteredDomains.map((domain) => (
-                    <motion.div
-                      key={domain.value}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Card
-                        glass
-                        className={`cursor-pointer transition-all ${
-                          config.domain === domain.value
-                            ? 'ring-2 ring-primary bg-primary/5'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => setConfig(prev => ({ ...prev, domain: domain.value as Domain }))}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-accent flex items-center justify-center">
-                                <Layers className="w-6 h-6 text-white" />
-                              </div>
-                              <p className="font-semibold text-lg">{domain.label}</p>
-                            </div>
-                            {config.domain === domain.value && (
-                              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                                <Check className="w-5 h-5 text-white" />
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-
-              {currentStep === 2 && (
-                <div className="space-y-4">
-                  {DIFFICULTIES.map((difficulty) => (
-                    <motion.div
-                      key={difficulty.value}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      <Card
-                        glass
-                        className={`cursor-pointer transition-all ${
-                          config.difficulty === difficulty.value
-                            ? 'ring-2 ring-primary bg-primary/5'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => setConfig(prev => ({ ...prev, difficulty: difficulty.value as Difficulty }))}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-semibold text-lg">{difficulty.label}</p>
-                              <p className="text-muted-foreground">{difficulty.description}</p>
+                              <p className="font-semibold text-lg">{role.label}</p>
                             </div>
-                            {config.difficulty === difficulty.value && (
-                              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                                <Check className="w-5 h-5 text-white" />
-                              </div>
-                            )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
+                          {config.job_role === role.value && (
+                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                              <Check className="w-5 h-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
 
-              {currentStep === 3 && (
-                <div className="grid md:grid-cols-3 gap-4">
-                  {INTERVIEW_TYPES.map((type) => (
+            {currentStep === 1 && (
+              <div className="grid md:grid-cols-3 gap-4">
+                {COMPANIES.map((company) => (
+                  <Card
+                    key={company.value}
+                    glass
+                    className={`cursor-pointer transition-all ${config.company === company.value
+                      ? "ring-2 ring-primary bg-primary/5"
+                      : "hover:bg-muted/50"
+                      }`}
+                    onClick={() =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        company: company.value,
+                      }))
+                    }
+                  >
+                    <CardContent className="p-6 text-center">
+                      <Brain className="w-10 h-10 mx-auto mb-4 text-primary" />
+
+                      <p className="font-semibold">
+                        {company.label}
+                      </p>
+
+                      {config.company === company.value && (
+                        <div className="mt-4 w-8 h-8 rounded-full bg-primary mx-auto flex items-center justify-center">
+                          <Check className="w-5 h-5 text-white" />
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {filteredDomains.map((domain) => (
+                  <motion.div
+                    key={domain.value}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Card
+                      glass
+                      className={`cursor-pointer transition-all ${config.domain === domain.value
+                        ? "ring-2 ring-primary bg-primary/5"
+                        : "hover:bg-muted/50"
+                        }`}
+                      onClick={() =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          domain: domain.value as Domain,
+                        }))
+                      }
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                              <Brain className="w-6 h-6 text-white" />
+                            </div>
+
+                            <div>
+                              <p className="font-semibold text-lg">
+                                {domain.label}
+                              </p>
+                            </div>
+                          </div>
+
+                          {config.domain === domain.value && (
+                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                              <Check className="w-5 h-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                {DIFFICULTIES.map((difficulty) => (
+                  <motion.div
+                    key={difficulty.value}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <Card
+                      glass
+                      className={`cursor-pointer transition-all ${config.difficulty === difficulty.value
+                        ? 'ring-2 ring-primary bg-primary/5'
+                        : 'hover:bg-muted/50'
+                        }`}
+                      onClick={() => setConfig(prev => ({ ...prev, difficulty: difficulty.value as Difficulty }))}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-lg">{difficulty.label}</p>
+                            <p className="text-muted-foreground">{difficulty.description}</p>
+                          </div>
+                          {config.difficulty === difficulty.value && (
+                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                              <Check className="w-5 h-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="grid md:grid-cols-3 gap-4">
+                {INTERVIEW_TYPES.map((type) => (
+                  <motion.div
+                    key={type.value}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Card
+                      glass
+                      className={`cursor-pointer transition-all ${config.interview_type === type.value
+                        ? 'ring-2 ring-primary bg-primary/5'
+                        : 'hover:bg-muted/50'
+                        }`}
+                      onClick={() => setConfig(prev => ({ ...prev, interview_type: type.value as InterviewType }))}
+                    >
+                      <CardContent className="p-6 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary mx-auto mb-4 flex items-center justify-center">
+                          <Brain className="w-8 h-8 text-white" />
+                        </div>
+                        <p className="font-semibold text-lg mb-2">{type.label}</p>
+                        <p className="text-sm text-muted-foreground">{type.description}</p>
+                        {config.interview_type === type.value && (
+                          <div className="mt-4 w-8 h-8 rounded-full bg-primary mx-auto flex items-center justify-center">
+                            <Check className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {currentStep === 5 && (
+              <div className="space-y-6">
+                <p className="text-center text-muted-foreground">
+                  Select the number of questions for your interview
+                </p>
+                <div className="flex justify-center gap-4">
+                  {QUESTION_COUNTS.map((count) => (
                     <motion.div
-                      key={type.value}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      key={count}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Card
                         glass
-                        className={`cursor-pointer transition-all ${
-                          config.interview_type === type.value
-                            ? 'ring-2 ring-primary bg-primary/5'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => setConfig(prev => ({ ...prev, interview_type: type.value as InterviewType }))}
+                        className={`cursor-pointer transition-all ${config.num_questions === count
+                          ? 'ring-2 ring-primary bg-primary/5'
+                          : 'hover:bg-muted/50'
+                          }`}
+                        onClick={() => setConfig(prev => ({ ...prev, num_questions: count }))}
                       >
-                        <CardContent className="p-6 text-center">
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary mx-auto mb-4 flex items-center justify-center">
-                            <Brain className="w-8 h-8 text-white" />
+                        <CardContent className="p-8 text-center">
+                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary mx-auto mb-4 flex items-center justify-center">
+                            <Clock className="w-10 h-10 text-white" />
                           </div>
-                          <p className="font-semibold text-lg mb-2">{type.label}</p>
-                          <p className="text-sm text-muted-foreground">{type.description}</p>
-                          {config.interview_type === type.value && (
+                          <p className="text-3xl font-bold">{count}</p>
+                          <p className="text-sm text-muted-foreground">questions</p>
+                          {config.num_questions === count && (
                             <div className="mt-4 w-8 h-8 rounded-full bg-primary mx-auto flex items-center justify-center">
                               <Check className="w-5 h-5 text-white" />
                             </div>
@@ -318,74 +425,48 @@ export default function InterviewSetup() {
                     </motion.div>
                   ))}
                 </div>
-              )}
 
-              {currentStep === 4 && (
-                <div className="space-y-6">
-                  <p className="text-center text-muted-foreground">
-                    Select the number of questions for your interview
-                  </p>
-                  <div className="flex justify-center gap-4">
-                    {QUESTION_COUNTS.map((count) => (
-                      <motion.div
-                        key={count}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Card
-                          glass
-                          className={`cursor-pointer transition-all ${
-                            config.num_questions === count
-                              ? 'ring-2 ring-primary bg-primary/5'
-                              : 'hover:bg-muted/50'
-                          }`}
-                          onClick={() => setConfig(prev => ({ ...prev, num_questions: count }))}
-                        >
-                          <CardContent className="p-8 text-center">
-                            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary mx-auto mb-4 flex items-center justify-center">
-                              <Clock className="w-10 h-10 text-white" />
-                            </div>
-                            <p className="text-3xl font-bold">{count}</p>
-                            <p className="text-sm text-muted-foreground">questions</p>
-                            {config.num_questions === count && (
-                              <div className="mt-4 w-8 h-8 rounded-full bg-primary mx-auto flex items-center justify-center">
-                                <Check className="w-5 h-5 text-white" />
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Summary */}
-                  <Card glass className="mt-8">
-                    <CardHeader>
-                      <CardTitle>Interview Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Role</p>
-                          <p className="font-medium">{JOB_ROLES.find(r => r.value === config.job_role)?.label}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Domain</p>
-                          <p className="font-medium">{DOMAINS.find(d => d.value === config.domain)?.label}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Difficulty</p>
-                          <p className="font-medium capitalize">{config.difficulty}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Questions</p>
-                          <p className="font-medium">{config.num_questions}</p>
-                        </div>
+                {/* Summary */}
+                <Card glass className="mt-8">
+                  <CardHeader>
+                    <CardTitle>Interview Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Role</p>
+                        <p className="font-medium">{JOB_ROLES.find(r => r.value === config.job_role)?.label}</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+                      <div>
+                        <p className="text-sm text-muted-foreground">Company</p>
+                        <p className="font-medium">{COMPANIES.find(c => c.value === config.company)?.label}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Domain</p>
+                        <p className="font-medium">{DOMAINS.find(d => d.value === config.domain)?.label}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Difficulty</p>
+                        <p className="font-medium capitalize">{config.difficulty}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Interview Type
+                        </p>
+
+                        <p className="font-medium capitalize">
+                          {config.interview_type}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Questions</p>
+                        <p className="font-medium">{config.num_questions}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 

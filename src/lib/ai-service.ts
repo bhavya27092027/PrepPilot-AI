@@ -1,5 +1,6 @@
-import type { Domain, Difficulty, InterviewType, JobRole, Question, Answer } from '@/types'
+import type { Domain, Difficulty, JobRole, Question, Answer } from '@/types'
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { supabase } from "@/lib/supabase";
 
 const genAI = new GoogleGenerativeAI(
   import.meta.env.VITE_GEMINI_API_KEY
@@ -22,64 +23,116 @@ async function callGemini(prompt: string): Promise<string> {
   }
 }
 
-function getRoleDescription(role: JobRole): string {
-  const descriptions: Record<JobRole, string> = {
-    software_engineer: 'a Software Engineer position',
-    frontend_developer: 'a Frontend Developer position',
-    backend_developer: 'a Backend Developer position',
-    full_stack_developer: 'a Full Stack Developer position',
-    data_analyst: 'a Data Analyst position',
-    product_manager: 'a Product Manager position',
-    data_scientist: 'a Data Scientist position',
-  }
-  return descriptions[role]
-}
-
-function getDifficultyInstruction(difficulty: Difficulty): string {
-  const instructions: Record<Difficulty, string> = {
-    beginner: 'Keep questions straightforward and fundamental. Focus on core concepts and basic problem-solving.',
-    intermediate: 'Ask moderately challenging questions that require deeper understanding and practical application.',
-    advanced: 'Ask complex questions that test advanced knowledge, system design thinking, and edge cases.',
-  }
-  return instructions[difficulty]
-}
-
 export async function generateQuestion(
   role: JobRole,
+  company: string,
   domain: Domain,
-  difficulty: Difficulty,
-  type: InterviewType,
-  previousQA?: { question: string; answer: string }[]
-): Promise<Omit<Question, 'id' | 'interview_id' | 'created_at'>> {
-  const prompt = `You are an expert technical interviewer for ${getRoleDescription(role)}.
+  difficulty: Difficulty
+): Promise<Omit<Question, "id" | "interview_id" | "created_at">> {
 
-Generate ONE interview question about ${domain.replace(/_/g, ' ')}.
-Difficulty: ${difficulty}
-${getDifficultyInstruction(difficulty)}
-Type: ${type === 'behavioral' ? 'behavioral/situational question' : type === 'technical' ? 'technical question' : 'either technical or behavioral question'}
+  // ===== Gemini for dynamic domains =====
+  if (
+    domain === "react" ||
+    domain === "nodejs" ||
+    domain === "behavioral" ||
+    domain === "product_strategy"
+  ) {
+    const prompt = `
+You are an expert technical interviewer.
 
-${previousQA && previousQA.length > 0 ? `
-Context from previous Q&A:
-${previousQA.map((qa, i) => `Q${i + 1}: ${qa.question}\nA${i + 1}: ${qa.answer}`).join('\n')}
+Generate ONE realistic ${difficulty} level interview question.
 
-Generate a relevant follow-up question that builds on the previous discussion.
-` : 'Generate an opening question that sets up the interview.'}
+Role: ${role.replace("_", " ")}
+Company: ${company}
+Domain: ${domain.replace("_", " ")}
 
-Return the question as plain text, no markdown, no quotes.
+Rules:
+- Return ONLY the interview question.
+- No numbering.
+- No markdown.
+- No explanation.
+- Make it suitable for a real interview.
+`;
 
-Also indicate if this is a technical or behavioral question by appending either [TECHNICAL] or [BEHAVIORAL] at the end.`
+    const question = await callGemini(prompt);
 
-  const response = await callGemini(prompt)
-  const isTechnical = response.includes('[TECHNICAL]')
-  const questionText = response.replace(/\[TECHNICAL\]|\[BEHAVIORAL\]/g, '').trim()
+    return {
+      question_text: question.trim(),
+      question_type:
+        domain === "behavioral" ? "behavioral" : "technical",
+      difficulty,
+      order_index: 0,
+      follow_up_for: null,
+    };
+  }
+
+  // ===== Database mapping =====
+  const roleMap: Record<JobRole, string> = {
+    software_engineer: "Software Engineer",
+    frontend_developer: "Frontend Developer",
+    backend_developer: "Backend Developer",
+    full_stack_developer: "Full Stack Developer",
+    data_analyst: "Data Analyst",
+    product_manager: "Product Manager",
+    data_scientist: "Data Scientist",
+  };
+
+  const domainMap: Record<Domain, string> = {
+    react: "React",
+    nodejs: "Node.js",
+    system_design: "System Design",
+    dsa: "Data Structures & Algorithms",
+    machine_learning: "Machine Learning",
+    product_strategy: "Product Strategy",
+    behavioral: "Behavioral",
+  };
+
+  const difficultyMap: Record<Difficulty, string> = {
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    advanced: "Advanced",
+  };
+
+  // ===== Company-specific questions =====
+  let { data, error } = await supabase
+    .from("question_bank")
+    .select("question_text, question_type")
+    .eq("role", roleMap[role])
+    .eq("company", company)
+    .eq("domain", domainMap[domain])
+    .eq("difficulty", difficultyMap[difficulty]);
+
+  if (error) throw error;
+
+  // ===== Fallback to General =====
+  if (!data || data.length === 0) {
+    const result = await supabase
+      .from("question_bank")
+      .select("question_text, question_type")
+      .eq("role", roleMap[role])
+      .eq("company", "General")
+      .eq("domain", domainMap[domain])
+      .eq("difficulty", difficultyMap[difficulty]);
+
+    if (result.error) throw result.error;
+
+    data = result.data;
+
+    if (!data || data.length === 0) {
+      throw new Error("No questions found.");
+    }
+  }
+
+  const random =
+    data[Math.floor(Math.random() * data.length)];
 
   return {
-    question_text: questionText,
-    question_type: isTechnical ? 'technical' : 'behavioral',
+    question_text: random.question_text,
+    question_type: random.question_type || "technical",
     difficulty,
-    order_index: previousQA?.length || 0,
-    follow_up_for: previousQA && previousQA.length > 0 ? 'previous' : null,
-  }
+    order_index: 0,
+    follow_up_for: null,
+  };
 }
 
 export async function evaluateAnswer(

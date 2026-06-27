@@ -46,8 +46,9 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
 export type InterviewType = 'technical' | 'behavioral' | 'mixed'
 
 export interface InterviewConfig {
-  job_role: JobRole
-  domain: Domain
+  job_role: JobRole | ""
+  company: string
+  domain: Domain | ""
   difficulty: Difficulty
   interview_type: InterviewType
   num_questions: number
@@ -86,6 +87,7 @@ export interface Interview {
   id: string
   user_id: string
   job_role: JobRole
+  company: string
   domain: Domain
   difficulty: Difficulty
   interview_type: InterviewType
