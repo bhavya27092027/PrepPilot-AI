@@ -20,11 +20,11 @@ import type { JobRole, Domain, Difficulty, InterviewType, InterviewConfig } from
 const steps = [
   { id: 'role', title: 'Select Role', description: 'Choose your target position' },
   { id: 'company', title: 'Select Company', description: 'Choose target company' },
-  { id: 'domain', title: 'Choose Domain', description: 'Pick your interview topic' },
-  { id: 'difficulty', title: 'Set Difficulty', description: 'Select challenge level' },
-  { id: 'type', title: 'Interview Type', description: 'Technical or Behavioral' },
-  { id: 'questions', title: 'Question Count', description: 'How many questions' },
-]
+  { id: 'type', title: 'Interview Type', description: 'Technical / Behavioral / Mixed' },
+  { id: 'domain', title: 'Choose Domain', description: 'Pick interview topic' },
+  { id: 'difficulty', title: 'Difficulty', description: 'Choose level' },
+  { id: 'questions', title: 'Questions', description: 'Number of questions' },
+];
 
 export default function InterviewSetup() {
   const navigate = useNavigate()
@@ -63,13 +63,16 @@ export default function InterviewSetup() {
         return !!config.company;
 
       case 2:
-        return !!config.domain;
+        return !!config.interview_type;
 
       case 3:
-        return !!config.difficulty;
+        if (config.interview_type === "mixed")
+          return true;
+
+        return !!config.domain;
 
       case 4:
-        return !!config.interview_type;
+        return !!config.difficulty;
 
       case 5:
         return !!config.num_questions;
@@ -272,53 +275,64 @@ export default function InterviewSetup() {
               </div>
             )}
 
-            {currentStep === 2 && (
-              <div className="grid md:grid-cols-2 gap-4">
-                {filteredDomains.map((domain) => (
-                  <motion.div
-                    key={domain.value}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Card
-                      glass
-                      className={`cursor-pointer transition-all ${config.domain === domain.value
-                        ? "ring-2 ring-primary bg-primary/5"
-                        : "hover:bg-muted/50"
-                        }`}
-                      onClick={() =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          domain: domain.value as Domain,
-                        }))
-                      }
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                              <Brain className="w-6 h-6 text-white" />
-                            </div>
+            {currentStep === 2 &&
+              config.interview_type !== "mixed" && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {filteredDomains
+                    .filter((domain) => {
+                      if (config.interview_type === "behavioral")
+                        return domain.value === "behavioral";
 
-                            <div>
-                              <p className="font-semibold text-lg">
-                                {domain.label}
-                              </p>
-                            </div>
-                          </div>
+                      if (config.interview_type === "technical")
+                        return domain.value !== "behavioral";
 
-                          {config.domain === domain.value && (
-                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                              <Check className="w-5 h-5 text-white" />
+                      return true;
+                    })
+                    .map((domain) => (
+                      <motion.div
+                        key={domain.value}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Card
+                          glass
+                          className={`cursor-pointer transition-all ${config.domain === domain.value
+                            ? "ring-2 ring-primary bg-primary/5"
+                            : "hover:bg-muted/50"
+                            }`}
+                          onClick={() =>
+                            setConfig((prev) => ({
+                              ...prev,
+                              domain: domain.value as Domain,
+                            }))
+                          }
+                        >
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                  <Brain className="w-6 h-6 text-white" />
+                                </div>
+
+                                <div>
+                                  <p className="font-semibold text-lg">
+                                    {domain.label}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {config.domain === domain.value && (
+                                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                                  <Check className="w-5 h-5 text-white" />
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                </div>
+              )}
 
             {currentStep === 3 && (
               <div className="space-y-4">

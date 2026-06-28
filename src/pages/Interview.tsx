@@ -10,7 +10,10 @@ import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { generateQuestion, evaluateAnswer } from '@/lib/ai-service'
+import {
+  generateQuestion, evaluateAnswer,
+  generateInterviewReport
+} from '@/lib/ai-service'
 import { formatDuration } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import type { Interview, Question, Answer } from '@/types'
@@ -61,84 +64,82 @@ export default function Interview() {
 
   // Fetch interview data
   useEffect(() => {
-    if (!id || !user) return
+    if (!id || !user) return;
 
     async function fetchInterview() {
+      setLoading(true);
+
       try {
         // Fetch interview
         const { data: interviewData, error: interviewError } = await supabase
-          .from('interviews')
-          .select('*')
-          .eq('id', id)
-          .eq('user_id', user!.id)
-          .single()
+          .from("interviews")
+          .select("*")
+          .eq("id", id)
+          .eq("user_id", user!.id)
+          .single();
 
-        if (interviewError) throw interviewError
-        setInterview(interviewData)
+        if (interviewError) throw interviewError;
 
-        // Fetch questions
+        setInterview(interviewData);
+
+        // Fetch existing questions
         const { data: questionsData } = await supabase
-          .from('questions')
-          .select('*')
-          .eq('interview_id', id)
-          .order('order_index', { ascending: true })
-
-        setQuestions(questionsData || [])
-        setCurrentQuestionIndex(interviewData.current_question_index)
+          .from("questions")
+          .select("*")
+          .eq("interview_id", id)
+          .order("order_index", { ascending: true });
 
         // Fetch answers
         const { data: answersData } = await supabase
-          .from('answers')
-          .select('*')
-          .eq('interview_id', id)
+          .from("answers")
+          .select("*")
+          .eq("interview_id", id);
 
-        setAnswers(answersData || [])
+        setAnswers(answersData || []);
 
-        // If no questions yet, generate first one
+        // If first interview → generate first question
         if (!questionsData || questionsData.length === 0) {
-          await generateFirstQuestion(interviewData)
-        } else {
-          // Rebuild messages from existing Q&A
-          const msgs: Message[] = []
-          questionsData.forEach((q) => {
-            msgs.push({
-              id: `q-${q.id}`,
-              role: 'ai',
-              content: q.question_text,
-              isQuestion: true,
-            })
-            const answer = answersData?.find(a => a.question_id === q.id)
-            if (answer) {
-              msgs.push({
-                id: `a-${answer.id}`,
-                role: 'user',
-                content: answer.answer_text,
-              })
-            }
-          })
-          setMessages(msgs)
-
-          // Set current question index
-          const answeredCount = answersData?.length || 0
-          if (answeredCount < (questionsData?.length || 0)) {
-            setCurrentQuestionIndex(answeredCount)
-          }
+          await generateFirstQuestion(interviewData);
+          return;
         }
+
+        // Otherwise restore previous interview
+        setQuestions(questionsData);
+
+        const msgs: Message[] = [];
+
+        questionsData.forEach((q) => {
+          msgs.push({
+            id: `q-${q.id}`,
+            role: "ai",
+            content: q.question_text,
+            isQuestion: true,
+          });
+
+          const ans = answersData?.find((a) => a.question_id === q.id);
+
+          if (ans) {
+            msgs.push({
+              id: `a-${ans.id}`,
+              role: "user",
+              content: ans.answer_text,
+            });
+          }
+        });
+
+        setMessages(msgs);
+
+        const answeredCount = answersData?.length || 0;
+        setCurrentQuestionIndex(answeredCount);
       } catch (error) {
-        console.error('Error fetching interview:', error)
-        toast({
-          title: 'Error',
-          description: 'Failed to load interview',
-          variant: 'destructive',
-        })
-        navigate('/dashboard')
+        console.error(error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchInterview()
-  }, [id, user!.id])
+    fetchInterview();
+  }, [id, user]);
 
   async function generateFirstQuestion(interviewData: Interview) {
     setLoading(true)
@@ -146,12 +147,17 @@ export default function Interview() {
 
     try {
       const result = await generateQuestion(
-        interviewData.job_role,
         interviewData.company,
         interviewData.domain,
-        interviewData.difficulty
+        interviewData.difficulty,
+        interviewData.interview_type,
       )
-
+      console.log({
+        company: interviewData.company,
+        domain: interviewData.domain,
+        difficulty: interviewData.difficulty,
+        interview_type: interviewData.interview_type,
+      });
       // Save question to DB
       const { data: savedQuestion, error } = await supabase
         .from('questions')
@@ -176,6 +182,8 @@ export default function Interview() {
           isQuestion: true,
         },
       ])
+      setCurrentQuestionIndex(0);
+      setQuestionStartTime(Date.now());
     } catch (error) {
       console.error('Error generating question:', error)
       toast({
@@ -197,10 +205,10 @@ export default function Interview() {
 
     try {
       const result = await generateQuestion(
-        interview.job_role as any,
         interview.company as any,
         interview.domain as any,
-        interview.difficulty as any
+        interview.difficulty as any,
+        interview.interview_type as any
       )
 
       // Save question
@@ -300,7 +308,7 @@ export default function Interview() {
 
       // Check if interview is complete
       if (answers.length + 1 >= interview.total_questions) {
-        await completeInterview()
+        await completeInterview(answers)
       } else {
         // Generate next question after a short delay
         setTimeout(generateNextQuestion, 1500)
@@ -317,23 +325,38 @@ export default function Interview() {
     }
   }
 
-  async function completeInterview() {
-    if (!interview || !id) return
+  async function completeInterview(finalAnswers: Answer[]) {
+    if (!interview || !id) return;
 
     try {
-      // Update interview status
-      await supabase
-        .from('interviews')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', id)
+      const report = await generateInterviewReport(
+        interview.job_role as any,
+        interview.domain as any,
+        questions,
+        finalAnswers
+      );
 
-      // Navigate to report
-      navigate(`/interview/${id}/report`)
+      await supabase
+        .from("interviews")
+        .update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+
+          overall_score: report.overall_score,
+          technical_score: report.technical_score,
+          communication_score: report.communication_score,
+          problem_solving_score: report.problem_solving_score,
+
+          strengths: report.strengths,
+          weaknesses: report.weaknesses,
+          learning_plan: report.learning_plan,
+          suggested_resources: report.suggested_resources,
+        })
+        .eq("id", id);
+
+      navigate(`/interview/${id}/report`);
     } catch (error) {
-      console.error('Error completing interview:', error)
+      console.error("Error completing interview:", error);
     }
   }
 
@@ -342,7 +365,7 @@ export default function Interview() {
       setCurrentAnswer('')
       await generateNextQuestion()
     } else {
-      await completeInterview()
+      await completeInterview(answers)
     }
   }
 
