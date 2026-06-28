@@ -9,7 +9,7 @@ PrepPilot AI provides realistic interview simulations with AI-generated question
 ## 🌐 Live Demo
 
 **Live Website:**
-`https://prep-pilot-kawzeli3h-bhavya011048-8601s-projects.vercel.app/`
+`https://prep-pilot-ai-flax.vercel.app`
 
 ---
 
