@@ -1,24 +1,20 @@
 import type { Domain, Difficulty, JobRole, Question, Answer } from '@/types'
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
-
-const genAI = new GoogleGenerativeAI(
-  import.meta.env.VITE_GEMINI_API_KEY
-);
-
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-});
 
 async function callGemini(prompt: string): Promise<string> {
   try {
-    const result = await model.generateContent(prompt);
+    const { data, error } = await supabase.functions.invoke("gemini", {
+      body: { prompt },
+    });
 
-    const response = await result.response;
+    if (error) {
+      console.error(error);
+      throw error;
+    }
 
-    return response.text();
+    return data.text;
   } catch (error) {
-    console.error("Gemini Error:", error);
+    console.error("Edge Function Error:", error);
     throw new Error("Failed to generate Gemini content");
   }
 }
