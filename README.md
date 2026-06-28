@@ -241,20 +241,6 @@ Final Interview Report
 
 ---
 
-# 📷 Screenshots
-
-Add screenshots of:
-
-* Home Page
-* Login
-* Dashboard
-* Interview Setup
-* AI Interview Chat
-* AI Evaluation
-* Final Report
-
----
-
 # 📌 Future Improvements
 
 * Video Interview Support
