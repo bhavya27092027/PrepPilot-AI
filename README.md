@@ -276,7 +276,7 @@ GitHub:
 https://github.com/bhavya27092027
 
 LinkedIn:
-https://www.linkedin.com/in/YOUR-LINKEDIN
+https://www.linkedin.com/in/bhavyajain-fullstack/
 
 ---
 
