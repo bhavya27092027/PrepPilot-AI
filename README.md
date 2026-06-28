@@ -257,9 +257,7 @@ Add screenshots of:
 
 # 📌 Future Improvements
 
-* Voice-based Interviews
 * Video Interview Support
-* Resume Analysis
 * Coding Playground
 * AI Interview Analytics
 * Multi-language Support
