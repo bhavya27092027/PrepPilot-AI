@@ -16,7 +16,7 @@ PrepPilot AI is an intelligent interview preparation platform designed to simula
 ## 🌐 Live Demo
 
 **🔗 Live Website:**
-https://prep-pilot-ai-henna.vercel.app
+
 
 ---
 
