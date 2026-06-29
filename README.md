@@ -1,69 +1,74 @@
+# 🚀 PrepPilot AI
+
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase)
-![Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google)
-![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)
+![Gemini](https://img.shields.io/badge/Google-Gemini%202.5%20Flash-4285F4?logo=google)
+![Netlify](https://img.shields.io/badge/Deploy-Netlify-00C7B7?logo=netlify)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-# 🚀 PrepPilot AI
-
-> **An AI-powered career preparation platform that helps students and professionals prepare for technical interviews, behavioral interviews, voice interviews, resume optimization, and job matching using Google Gemini AI.**
-
-PrepPilot AI is an intelligent interview preparation platform designed to simulate real-world interview experiences. It combines **AI-powered mock interviews, voice interviews, resume analysis, job matching, interview history, and performance analytics** to help users improve their technical and communication skills while tracking their career growth.
+> **An AI-powered interview preparation and career assistant platform that helps students and professionals practice interviews, analyze resumes, match jobs, and improve communication skills using Google Gemini AI.**
 
 ---
 
-## 🌐 Live Demo
+# 🌐 Live Demo
 
-**🔗 Live Website:**
+### 🔗 Live Website
+
 https://preppilot-ai.netlify.app
 
+### 💻 GitHub Repository
+
+https://github.com/bhavya27092027/PrepPilot-AI
+
 ---
 
-# ✨ Features
+# ✨ Key Features
 
-## 🤖 AI Mock Interview
+## 🤖 AI Mock Interviews
 
 * AI-generated interview questions using **Google Gemini 2.5 Flash**
-* Technical, Behavioral & Mixed Interview modes
+* Technical, Behavioral and Mixed interview modes
 * Company-specific interview preparation
-* Dynamic AI-generated follow-up questions
-* Multiple difficulty levels (Beginner, Intermediate, Advanced)
-* Intelligent fallback question generation
+* Dynamic follow-up questions
+* Beginner, Intermediate and Advanced difficulty levels
+* Personalized AI interview experience
 
 ---
 
-## 🎤 Voice Interview
+## 🎙 AI Voice Interview
 
-* AI-powered voice interview simulation
-* Natural conversation experience
+* Real-time voice interview simulation
 * Hands-free interview practice
 * Interactive speaking assessment
+* Natural conversational interview flow
 
 ---
 
 ## 📄 AI Resume Analyzer
 
-* Resume upload and analysis
-* ATS-friendly resume evaluation
-* Resume scoring
-* AI-powered improvement suggestions
-* Resume optimization recommendations
+* Resume upload and parsing
+* ATS compatibility analysis
+* Resume quality score
+* Section-wise feedback
+* AI-powered resume improvement suggestions
+* Professional optimization recommendations
 
 ---
 
-## 💼 AI Job Matcher
+## 💼 AI Resume Job Matcher
 
-* Match resumes with suitable job roles
-* AI-based skill analysis
+* Resume vs Job Description matching
+* AI-powered skill gap analysis
+* Match percentage calculation
+* Missing skills identification
 * Personalized career recommendations
-* Better job discovery
 
 ---
 
 ## 📊 AI Answer Evaluation
 
-Each answer is evaluated using AI based on:
+Every interview response is evaluated based on:
 
 * Technical Accuracy
 * Communication Skills
@@ -71,20 +76,21 @@ Each answer is evaluated using AI based on:
 * Confidence
 * Clarity
 * Completeness
+* Overall Performance
 
 ---
 
-## 📈 Performance Dashboard
+## 📈 Performance Analytics Dashboard
 
-Track your interview journey with:
+Track your interview preparation through:
 
 * Overall Performance
 * Technical Performance
-* Communication Skills
+* Communication Score
 * Problem Solving Score
 * Interview Statistics
-* Progress Tracking
-* AI Performance Insights
+* Performance Trends
+* AI-generated Insights
 
 ---
 
@@ -92,16 +98,16 @@ Track your interview journey with:
 
 * Complete interview history
 * Previous interview reports
-* Answer review
 * Performance comparison
-* Progress tracking
-* Learning history
+* Answer review
+* Learning progress
+* Historical analytics
 
 ---
 
-## 📝 AI Interview Report
+## 📝 AI Interview Reports
 
-After every interview PrepPilot AI generates:
+Each completed interview generates:
 
 * Overall Score
 * Technical Score
@@ -109,15 +115,15 @@ After every interview PrepPilot AI generates:
 * Problem Solving Score
 * Strengths
 * Weaknesses
+* AI Feedback
 * Personalized Learning Plan
 * Recommended Learning Resources
-* AI-generated Feedback
 
 ---
 
-## 🏢 Company-Specific Preparation
+## 🏢 Company Specific Preparation
 
-Practice interviews for top companies including:
+Practice interview questions for companies including:
 
 * Google
 * Amazon
@@ -127,16 +133,19 @@ Practice interviews for top companies including:
 * Uber
 * Flipkart
 * Zomato
-* General
+* General Interviews
 
 ---
 
-## 💻 Supported Domains
+## 💻 Supported Interview Domains
 
 * Data Structures & Algorithms
+* Operating Systems
+* DBMS
+* OOPs
+* System Design
 * React.js
 * Node.js
-* System Design
 * Machine Learning
 * Product Strategy
 * Behavioral Interviews
@@ -145,18 +154,19 @@ Practice interviews for top companies including:
 
 ## 🔐 Authentication
 
-* Email & Password Login
+* Email & Password Authentication
 * Google OAuth Login
 * Secure Session Management
 * Supabase Authentication
+* Protected Routes
 
 ---
 
 # 🛠 Tech Stack
 
-### Frontend
+## Frontend
 
-* React
+* React 18
 * TypeScript
 * Vite
 * Tailwind CSS
@@ -164,7 +174,9 @@ Practice interviews for top companies including:
 * shadcn/ui
 * Lucide React
 
-### Backend
+---
+
+## Backend
 
 * Supabase
 * PostgreSQL
@@ -172,32 +184,42 @@ Practice interviews for top companies including:
 * Row Level Security (RLS)
 * Supabase Edge Functions
 
-### Artificial Intelligence
+---
+
+## Artificial Intelligence
 
 * Google Gemini 2.5 Flash
+* Prompt Engineering
+* AI Evaluation Pipeline
 
-### Deployment
+---
 
-* Vercel
+## Deployment
+
+* Netlify
+* GitHub Actions (Auto Deployment)
 
 ---
 
 # 🏗 System Architecture
 
 ```text
-                 React + TypeScript
-                         │
-                         ▼
-                 Supabase Authentication
-                         │
-                         ▼
+                  React + TypeScript
+                          │
+                          ▼
+                Supabase Authentication
+                          │
+                          ▼
                  PostgreSQL Database
-                         │
-                         ▼
-            Supabase Edge Functions
-                         │
-                         ▼
+                          │
+                          ▼
+              Supabase Edge Functions
+                          │
+                          ▼
                  Google Gemini AI
+                          │
+                          ▼
+          AI Question Generation & Evaluation
 ```
 
 ---
@@ -206,7 +228,8 @@ Practice interviews for top companies including:
 
 ```text
 PrepPilot-AI/
-│
+
+├── public/
 ├── src/
 │   ├── components/
 │   ├── contexts/
@@ -215,15 +238,16 @@ PrepPilot-AI/
 │   ├── pages/
 │   ├── services/
 │   ├── types/
-│   └── App.tsx
+│   ├── App.tsx
+│   └── main.tsx
 │
 ├── supabase/
 │   ├── functions/
 │   │      └── gemini/
 │   └── migrations/
 │
-├── public/
 ├── package.json
+├── vite.config.ts
 ├── .env.example
 └── README.md
 ```
@@ -252,19 +276,20 @@ npm install
 
 ## Environment Variables
 
-Create a `.env` file in the project root.
+Create a `.env` file.
 
 ```env
 VITE_SUPABASE_URL=YOUR_SUPABASE_URL
-
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-> **Note:** Google Gemini API keys are securely stored using **Supabase Edge Function Secrets** and are never exposed to the frontend.
+> **Security Notice**
+>
+> Google Gemini API Keys are securely stored inside **Supabase Edge Function Secrets** and are never exposed to the frontend.
 
 ---
 
-## Start Development Server
+## Run Development Server
 
 ```bash
 npm run dev
@@ -272,7 +297,7 @@ npm run dev
 
 ---
 
-## Build for Production
+## Build Production
 
 ```bash
 npm run build
@@ -282,13 +307,14 @@ npm run build
 
 # 🔒 Security Features
 
-* Secure Authentication with Supabase Auth
-* Google OAuth Integration
+* Secure Google OAuth Authentication
+* Email Authentication
+* Supabase Authentication
 * Row Level Security (RLS)
+* Protected API Access
 * Gemini API secured through Supabase Edge Functions
-* API keys are never exposed to the client
-* Secure database access
-* Protected user-specific interview data
+* Sensitive credentials never exposed to the client
+* Secure user-specific interview data
 
 ---
 
@@ -298,7 +324,7 @@ npm run build
 User Login
       │
       ▼
-Choose Interview Type
+Select Interview Type
       │
       ▼
 AI Question Generation
@@ -313,10 +339,10 @@ Gemini AI Evaluation
 Performance Analysis
       │
       ▼
-AI Report Generation
+Interview Report Generation
       │
       ▼
-Dashboard & Interview History
+Dashboard • Analytics • History
 ```
 
 ---
@@ -328,8 +354,10 @@ Dashboard & Interview History
 * Video Interview Analysis
 * Personalized Career Roadmap
 * Company-wise Analytics
-* Mock Interview Leaderboard
+* Interview Leaderboard
 * Recruiter Dashboard
+* AI Mock HR Interviews
+* Multi-language Interview Support
 
 ---
 
@@ -337,20 +365,22 @@ Dashboard & Interview History
 
 **Bhavya Jain**
 
-**GitHub:**
+### GitHub
+
 https://github.com/bhavya27092027
 
-**LinkedIn:**
+### LinkedIn
+
 https://www.linkedin.com/in/bhavyajain-fullstack/
 
 ---
 
 # ⭐ Support
 
-If you found this project useful, please consider giving it a ⭐ on GitHub.
+If you found this project helpful, consider giving it a ⭐ on GitHub.
 
 ---
 
 # 📄 License
 
-This project is licensed under the **MIT License**.
+Licensed under the **MIT License**.
