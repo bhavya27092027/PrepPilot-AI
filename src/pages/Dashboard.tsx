@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Brain, Target, Trophy, Flame, TrendingUp, ArrowRight,
@@ -34,7 +34,6 @@ interface RecentInterview extends Interview {
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [progressData, setProgressData] = useState<ProgressData[]>([])
   const [recentInterviews, setRecentInterviews] = useState<RecentInterview[]>([])
